@@ -150,8 +150,12 @@
         if (newQuantity == 0) {
             xhttp.open("DELETE", "deleteInventory", false);
         }
-        else {
+        else if (newQuantity > 0) {
             xhttp.open("POST", "updateInventory", false);
+        }
+        else {
+            alert("new quantity cannot be negative!");
+            return;
         }
         xhttp.setRequestHeader("Content-Type", "application/json");
         const postData = {
