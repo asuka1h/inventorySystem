@@ -4,25 +4,26 @@ An inventory tracking web application for a logistics company
 - **Push a button export product data to a CSV**
 ## Run Application
 ### on [Replit](https://replit.com/)
-- visit https://replit.com/@asuka1h/inventorySystem
+- Visit https://replit.com/@asuka1h/inventorySystem
+- Click `Open website` (*required*, otherwise `Export to CSV` button on **Show Products Page** will not work)
 ###  on Linux
 #### Prerequisites
-- install [Node.js](https://nodejs.org/en/download/)
-- get an API key from [OpenWeather](https://openweathermap.org/)
+- Install [Node.js](https://nodejs.org/en/download/)
+- Get an API key from [OpenWeather](https://openweathermap.org/)
 #### Steps
-- change to project root directory
+- Change to project root directory
     ```
     $ cd inventorySystem
     ```
-- install node packages
+- Install node packages
     ```
     $ npm install
     ```
-- run the application with environment variable `API_KEY` set to OpenWeather API key
+- Run the application with environment variable `API_KEY` set to OpenWeather API key
     ```
     $ API_KEY=<OpenWeather API key> node server.js
     ```
-- open a brower and access http://127.0.0.1:3000
+- Open a brower and access http://127.0.0.1:3000
 ## Mannual
 ### Home Page
 Click `Show Products` to view all products in the system.
