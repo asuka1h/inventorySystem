@@ -1,0 +1,82 @@
+<html>
+<script>
+    function generateProductsTable(productsData) {
+        const productsTable = document.getElementById("products");
+        productsTable.innerHTML = "";
+        if (productsData.length == 0) {
+            return;
+        }
+        document.getElementById("exportButton").hidden = false;
+
+        //create header
+        const headerRow = productsTable.insertRow(-1);
+        for (const key in productsData[0]) {
+            const value = document.createElement("th");
+            value.innerHTML = key;
+            headerRow.appendChild(value);
+        }
+        const value = document.createElement("th");
+        value.innerHTML = "action";
+        headerRow.appendChild(value);
+
+        let rowCount = 0;
+        for (const product of productsData) {
+            const row = productsTable.insertRow(-1);
+            rowCount++;
+            for (const key in product) {
+                const value = row.insertCell(-1);
+                value.innerHTML = product[key];
+            }
+            const manageButton = document.createElement("button");
+            manageButton.id = rowCount.toString();
+            manageButton.onclick = function () {
+                const currentRow = parseInt(this.id);
+                sessionStorage.setItem("itemBrand", productsTable.rows[currentRow].cells[0].innerHTML);
+                sessionStorage.setItem("itemName", productsTable.rows[currentRow].cells[1].innerHTML);
+                location.href = "item";
+            };
+            manageButton.innerHTML = "Manage Item";
+            const buttonCell = row.insertCell(-1);
+            buttonCell.appendChild(manageButton);
+        }
+    }
+
+    function exportToCsv() {
+        const csvData = [];
+        const productsTable = document.getElementById("products");
+        for (const row of productsTable.rows) {
+            const csvRow = [];
+            for (let i = 0; i < row.cells.length - 1; ++i) { // exclude button column
+                csvRow.push(row.cells[i].innerHTML);
+            }
+            csvData.push(csvRow.join(","));
+        }
+
+        const csvFile = new Blob([csvData.join("\n")], { type: "text/csv" });
+        const csvUrl = window.URL.createObjectURL(csvFile);
+        const downloadLink = document.createElement("a");
+        downloadLink.download = "products.csv";
+        downloadLink.href = csvUrl;
+        downloadLink.click();
+    }
+
+    window.onload = function () {
+        sessionStorage.clear()
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function () {
+            generateProductsTable(JSON.parse(this.responseText));
+        }
+        xhttp.open("GET", "show_products", false);
+        xhttp.send();
+    }
+</script>
+
+<body>
+    <h1>Inventory Management System - Show Products</h1>
+    <table id="products"></table><br>
+    <button onclick="exportToCsv()" id="exportButton" hidden="true">Export to CSV</button>
+    <br><br>
+    <button onclick="location.href = '/'">Home</button>
+</body>
+
+</html>

@@ -1,0 +1,61 @@
+<html>
+<script>
+    function generateInventoryTable(inventoryData) {
+        const inventoryTable = document.getElementById("inventory");
+        inventoryTable.innerHTML = "";
+        if (inventoryData.length == 0) {
+            return;
+        }
+
+        //create header
+        const headerRow = inventoryTable.insertRow(-1);
+        for (const key in inventoryData[0]) {
+            const value = document.createElement("th");
+            value.innerHTML = key;
+            headerRow.appendChild(value);
+        }
+        const value = document.createElement("th");
+        value.innerHTML = "action";
+        headerRow.appendChild(value);
+
+        let rowCount = 0;
+        for (const inventory of inventoryData) {
+            const row = inventoryTable.insertRow(-1);
+            rowCount++;
+            for (const key in inventory) {
+                const value = row.insertCell(-1);
+                value.innerHTML = inventory[key];
+            }
+            const manageButton = document.createElement("button");
+            manageButton.id = rowCount.toString();
+            manageButton.onclick = function () {
+                const currentRow = parseInt(this.id);
+                sessionStorage.setItem("itemBrand", inventoryTable.rows[currentRow].cells[0].innerHTML);
+                sessionStorage.setItem("itemName", inventoryTable.rows[currentRow].cells[1].innerHTML);
+                location.href = "item";
+            };
+            manageButton.innerHTML = "Manage Item";
+            const buttonCell = row.insertCell(-1);
+            buttonCell.appendChild(manageButton);
+        }
+    }
+
+    window.onload = function () {
+        sessionStorage.clear()
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function () {
+            generateInventoryTable(JSON.parse(this.responseText));
+        }
+        xhttp.open("GET", "show_inventory", false);
+        xhttp.send();
+    }
+</script>
+
+<body>
+    <h1>Inventory Management System - Show Inventory</h1>
+    <table id="inventory"></table>
+    <br><br>
+    <button onclick="location.href = '/'">Home</button>
+</body>
+
+</html>

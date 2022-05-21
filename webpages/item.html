@@ -1,0 +1,205 @@
+<html>
+<script>
+    function generateInventoryTable(inventoryData) {
+        const inventoryTable = document.getElementById("inventory");
+        inventoryTable.innerHTML = "";
+        if (inventoryData.length == 0) {
+            inventoryTable.hidden = true;
+            return;
+        }
+        inventoryTable.hidden = false;
+
+        //create header
+        const headerRow = inventoryTable.insertRow(-1);
+        for (const key in inventoryData[0]) {
+            const value = document.createElement("th");
+            value.innerHTML = key;
+            headerRow.appendChild(value);
+        }
+
+        for (const inventory of inventoryData) {
+            const row = inventoryTable.insertRow(-1);
+            for (const key in inventory) {
+                const value = row.insertCell(-1);
+                value.innerHTML = inventory[key];
+            }
+        }
+    }
+
+    window.onload = function () {
+        const itemBrand = sessionStorage.getItem("itemBrand");
+        const itemName = sessionStorage.getItem("itemName");
+        if (!itemBrand || itemBrand === "" || !itemName || itemName === "") {
+            return;
+        }
+        document.getElementById("detail").hidden = false;
+        document.getElementById("lookupButton").disabled = true;
+        document.getElementById("itemBrand").disabled = true;
+        document.getElementById("itemName").disabled = true;
+        document.getElementById("itemBrand").value = itemBrand;
+        document.getElementById("itemName").value = itemName;
+        const table = document.getElementById("itemDetail");
+        table.innerHTML = "";
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function () {
+            const responseData = JSON.parse(this.responseText);
+            if (responseData.exists) {
+                document.getElementById("lookupResult").innerHTML = "item found.";
+                document.getElementById("deleteButton").disabled = false;
+                document.getElementById("inventoryDiv").hidden = false;
+                for (const property in responseData.detail) {
+                    const tr = table.insertRow(-1);
+                    const name = tr.insertCell(-1);
+                    name.innerHTML = property;
+                    const value = tr.insertCell(-1);
+                    const valueInput = document.createElement("input");
+                    valueInput.type = "text";
+                    valueInput.value = responseData.detail[property];
+                    valueInput.id = property + "Input";
+                    value.appendChild(valueInput);
+                }
+                if (responseData.inventory.length > 0) {
+                    generateInventoryTable(responseData.inventory);
+                }
+            }
+            else {
+                document.getElementById("lookupResult").innerHTML =
+                    "item does not exist, please fill out the information below to create a new one.";
+                for (const property in responseData.detail) {
+                    const tr = table.insertRow(-1);
+                    const name = tr.insertCell(-1);
+                    name.innerHTML = property;
+                    const value = tr.insertCell(-1);
+                    const valueInput = document.createElement("input");
+                    valueInput.type = "text";
+                    valueInput.value = "";
+                    valueInput.id = property + "Input";
+                    value.appendChild(valueInput);
+                }
+            }
+        }
+        xhttp.open("GET", "item_lookup?" + new URLSearchParams({ brand: itemBrand, name: itemName }), false);
+        xhttp.send();
+    }
+
+    function itemLookup() {
+        const itemBrand = document.getElementById("itemBrand").value;
+        const itemName = document.getElementById("itemName").value;
+        if (itemBrand === "" || itemName === "") {
+            window.alert("Both brand and name for an item must be specified!");
+            return;
+        }
+        sessionStorage.setItem("itemBrand", itemBrand);
+        sessionStorage.setItem("itemName", itemName);
+        location.reload();
+    }
+
+    function updateItem() {
+        const detailTable = document.getElementById("itemDetail");
+        const postData = {
+            brand: document.getElementById("itemBrand").value,
+            name: document.getElementById("itemName").value
+        };
+        for (const row of detailTable.rows) {
+            const propertyName = row.cells[0].innerHTML;
+            const propertyValue = document.getElementById(propertyName + "Input").value;
+            if (!propertyValue) {
+                alert(propertyName + " data is missing!");
+                return;
+            }
+            postData[propertyName] = propertyValue;
+        }
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function () {
+            alert(this.responseText);
+            location.reload();
+        }
+        xhttp.open("POST", "updateItem", false);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        xhttp.send(JSON.stringify(postData));
+    }
+
+    function deleteItem() {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function () {
+            alert(this.responseText);
+            sessionStorage.clear();
+            location.reload()
+        }
+        xhttp.open("DELETE", "deleteItem", false);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        const postData = {
+            brand: document.getElementById("itemBrand").value,
+            name: document.getElementById("itemName").value
+        };
+        xhttp.send(JSON.stringify(postData));
+    }
+
+    function updateInventory() {
+        const xhttp = new XMLHttpRequest();
+        const newQuantity = document.getElementById("quantity").value;
+        if (!newQuantity) {
+            alert("put new quantity!");
+            return;
+        }
+        xhttp.onload = function () {
+            const responseData = JSON.parse(this.responseText);
+            alert(responseData.msg);
+            generateInventoryTable(responseData.inventory);
+        }
+        if (newQuantity == 0) {
+            xhttp.open("DELETE", "deleteInventory", false);
+        }
+        else {
+            xhttp.open("POST", "updateInventory", false);
+        }
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        const postData = {
+            brand: document.getElementById("itemBrand").value,
+            name: document.getElementById("itemName").value
+        };
+        postData.city = document.getElementById("city").value;
+        postData.quantity = newQuantity;
+        xhttp.send(JSON.stringify(postData));
+    }
+
+    function reset() {
+        sessionStorage.clear();
+        location.reload();
+    }
+</script>
+
+<body>
+    <h1>Inventory Management System - Manage Item</h1>
+    <label>Item Brand</label><input type="text" id="itemBrand" /><br>
+    <label>Item Name</label><input type="text" id="itemName" /><br>
+    <button onclick="itemLookup()" id="lookupButton">Item Lookup</button><br>
+    <button onclick="reset()">Reset</button><br>
+    <label id="lookupResult"></label><br>
+    <div id="detail" hidden="true">
+        <h2>Item Detail</h2>
+        <table id="itemDetail" style="border: 1px solid;"></table><br>
+        <button onclick="updateItem()">Update Item</button><br>
+        <button onclick="deleteItem()" id="deleteButton" disabled="true">Delete Item</button><br>
+        <div id="inventoryDiv" hidden="true">
+            <h2>Inventory</h2>
+            <table id="inventory" style="border: 1px solid;" hidden="true"></table><br>
+            <h2>Update Inventory</h2>
+            <label>City: </label>
+            <select id="city">
+                <option value="0">Pittsburgh, PA, USA</option>
+                <option value="1">San Jose, CA, USA</option>
+                <option value="2">New York, NY, USA</option>
+                <option value="3">Fairbanks, AK, USA</option>
+                <option value="4">Miami, FL, USA</option>
+            </select><br>
+            <label>New Quantity</label>
+            <input type="number" id="quantity" /><br>
+            <button onclick="updateInventory()">Submit</button>
+        </div>
+    </div>
+    <br><br>
+    <button onclick="location.href = '/'">Home</button>
+</body>
+
+</html>
