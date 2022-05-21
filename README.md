@@ -3,10 +3,13 @@ An inventory tracking web application for a logistics company
 ## Chosen Optional Requirement
 - **Push a button export product data to a CSV**
 ## Run Application
-### Prerequisites
+### on [Replit](https://replit.com/)
+- visit https://replit.com/@asuka1h/inventorySystem
+###  on Linux
+#### Prerequisites
 - install [Node.js](https://nodejs.org/en/download/)
 - get an API key from [OpenWeather](https://openweathermap.org/)
-### Steps
+#### Steps
 - change to project root directory
     ```
     $ cd inventorySystem
